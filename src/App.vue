@@ -3,27 +3,13 @@ import { ref, watchEffect } from 'vue';
 
 import ResultContainer from './components/ResultContainer.vue';
 
-import data from '@/acetaminophen_results'
-
 import { type DrugProp } from '@/Drug.type';
 
 const resultRef = ref<{ result: DrugProp[] }>({ result: [] });
 const searchText = ref("");
 
 const searchDrugs = async (drugSearch: string) => {
-  if ( drugSearch.length < 1 ) {
-    resultRef.value.result = data.results.filter((drug) =>
-      drugSearch.length > 1
-        ? new RegExp(drugSearch, 'i').test(
-            (() => {
-              if (drug.openfda === undefined) return ''
-              if (drug.openfda.brand_name === undefined) return ''
-              return drug.openfda.brand_name ? drug.openfda.brand_name[0] : ''
-            })()
-          )
-        : (() => drug.openfda !== undefined && drug.openfda.brand_name !== undefined)()
-    ) as DrugProp[];
-  }else {
+  if ( drugSearch.length > 0 ) {
     const res = await fetch(`https://api.fda.gov/drug/drugsfda.json?search=openfda.brand_name:'${drugSearch.replace(" ",  "+")}'&limit=1000`);
 
     if ( res.status == 200 ) {
@@ -35,8 +21,6 @@ const searchDrugs = async (drugSearch: string) => {
 }
 
 searchDrugs(searchText.value);
-
-watchEffect( () => searchDrugs(searchText.value) )
 
 </script>
 
