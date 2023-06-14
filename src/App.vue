@@ -10,7 +10,8 @@ import { type DrugProp } from '@/Drug.type';
 const resultRef = ref<{ result: DrugProp[] }>({ result: [] });
 const searchText = ref("");
 
-const searchDrugs = (drugSearch: string) => {
+const searchDrugs = async (drugSearch: string) => {
+  if ( drugSearch.length < 1 ) {
     resultRef.value.result = data.results.filter((drug) =>
       drugSearch.length > 1
         ? new RegExp(drugSearch, 'i').test(
@@ -21,7 +22,16 @@ const searchDrugs = (drugSearch: string) => {
             })()
           )
         : (() => drug.openfda !== undefined && drug.openfda.brand_name !== undefined)()
-    ) as DrugProp[]
+    ) as DrugProp[];
+  }else {
+    const res = await fetch(`https://api.fda.gov/drug/drugsfda.json?search=openfda.brand_name:'${drugSearch.replace(" ",  "+")}'&limit=1000`);
+
+    if ( res.status == 200 ) {
+      resultRef.value.result = ( await res.json() ).results;
+    }else {
+      resultRef.value.result = [];
+    }
+  }
 }
 
 searchDrugs(searchText.value);
